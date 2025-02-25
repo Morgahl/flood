@@ -9,7 +9,7 @@ import (
 type Scanner struct {
 	file  *os.File
 	buf   *bufio.Reader
-	board [][]uint8
+	board [19][19]uint8
 }
 
 func New(filepath string) (*Scanner, error) {
@@ -27,9 +27,7 @@ func New(filepath string) (*Scanner, error) {
 }
 
 func (s *Scanner) Scan() bool {
-	s.board = make([][]uint8, 19)
 	for i := 0; i < 19; i++ {
-		s.board[i] = make([]uint8, 19)
 		if _, err := fmt.Fscanf(s.buf, "%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d\n",
 			&s.board[i][0], &s.board[i][1], &s.board[i][2], &s.board[i][3], &s.board[i][4],
 			&s.board[i][5], &s.board[i][6], &s.board[i][7], &s.board[i][8], &s.board[i][9],
@@ -43,7 +41,7 @@ func (s *Scanner) Scan() bool {
 	return true
 }
 
-func (s *Scanner) Board() [][]uint8 {
+func (s *Scanner) Board() [19][19]uint8 {
 	return s.board
 }
 
