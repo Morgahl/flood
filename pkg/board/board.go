@@ -1,12 +1,15 @@
 package board
 
 import (
-	"fmt"
 	"sort"
+	"strconv"
+	"strings"
+
+	"github.com/Morgahl/flood/pkg/color"
 )
 
 const (
-	keepCount = 250
+	keepCount = 1000
 )
 
 type Board struct {
@@ -16,7 +19,7 @@ type Board struct {
 	solvedCount int
 }
 
-func New(vals [][]uint8) *Board {
+func New(vals [19][19]uint8) *Board {
 	b := &Board{}
 
 	// setup cells
@@ -34,11 +37,15 @@ func New(vals [][]uint8) *Board {
 	return b
 }
 
+func (b *Board) Normalize() {
+	b.Flood(b.cells[9][9].v)
+}
+
 func (b *Board) Solution() []uint8 {
 	return b.solution
 }
 
-func (b *Board) copy() *Board {
+func (b *Board) Copy() *Board {
 	nb := &Board{
 		solveFor:    b.solveFor,
 		solution:    make([]uint8, len(b.solution), len(b.solution)+1),
@@ -103,7 +110,7 @@ func (b *Board) solveEach() ([]*Board, bool) {
 			continue
 		}
 
-		nb := b.copy()
+		nb := b.Copy()
 		nb.Flood(sf)
 		if nb.solvedCount == 19*19 {
 			return []*Board{nb}, true
@@ -118,9 +125,16 @@ func (b *Board) solveEach() ([]*Board, bool) {
 func (b *Board) Flood(t uint8) {
 	if len(b.solution) > 0 && b.solution[len(b.solution)-1] == t {
 		return
+	} else if b.solvedCount == 19*19 {
+		return
 	}
-	b.solvedCount = b.cells[9][9].flood(b.cells[9][9].v, t)
-	b.solution = append(b.solution, b.cells[9][9].v)
+
+	if solvedCount := b.cells[9][9].flood(b.cells[9][9].v, t); b.solvedCount < solvedCount {
+		if b.solvedCount > 0 {
+			b.solution = append(b.solution, t)
+		}
+		b.solvedCount = solvedCount
+	}
 	b.clear()
 }
 
@@ -143,15 +157,67 @@ func (b *Board) clear() {
 	}
 }
 
+func (b *Board) ANSIString() string {
+	builder := &strings.Builder{}
+	for i, r := range b.cells {
+		if i == 9 {
+			for _, c := range r[0:8] {
+				builder.WriteString(color.Colorize(c.v))
+				builder.WriteByte(' ')
+			}
+			builder.WriteString(color.Colorize(r[8].v))
+			builder.WriteByte('[')
+			builder.WriteString(color.Colorize(r[9].v))
+			builder.WriteByte(']')
+			for _, c := range r[10:] {
+				builder.WriteString(color.Colorize(c.v))
+				builder.WriteByte(' ')
+			}
+		} else {
+			for _, c := range r {
+				builder.WriteString(color.Colorize(c.v))
+				builder.WriteByte(' ')
+			}
+		}
+		builder.WriteByte('\n')
+	}
+
+	builder.WriteByte('[')
+	for i, v := range b.solution {
+		builder.WriteString(color.Colorize(v))
+		if i < len(b.solution)-1 {
+			builder.WriteByte(' ')
+		}
+	}
+	builder.WriteString("] ")
+
+	builder.WriteString(strconv.Itoa(len(b.solution)))
+	builder.WriteByte(' ')
+	builder.WriteString(strconv.Itoa(b.solvedCount))
+
+	return builder.String()
+}
+
 func (b *Board) String() string {
-	var display string
+	builder := &strings.Builder{}
 	for _, r := range b.cells {
 		for _, c := range r {
-			display += c.String() + " "
+			builder.WriteString(c.String())
+			builder.WriteByte(' ')
 		}
-		display += "\n"
+		builder.WriteByte('\n')
 	}
-	display += fmt.Sprint(b.solution, b.solvedCount)
 
-	return display
+	builder.WriteByte('[')
+	for _, v := range b.solution {
+		builder.WriteString(strconv.Itoa(int(v)))
+		builder.WriteByte(' ')
+	}
+	builder.WriteString("] ")
+
+	builder.WriteString(strconv.Itoa(len(b.solution)))
+	builder.WriteByte(' ')
+	builder.WriteString(strconv.Itoa(b.solvedCount))
+
+	return builder.String()
 }
