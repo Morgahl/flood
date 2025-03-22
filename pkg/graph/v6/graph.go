@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	keepCount = 2500
+	keepCount = 250
 )
 
 type Graph struct {
@@ -17,9 +17,11 @@ type Graph struct {
 }
 
 func New(vals [19][19]uint8) *Graph {
-	g := &Graph{}
+	g := &Graph{
+		solution: make([]uint8, 0, 32),
+	}
 	idMap := make(map[[2]int]uint16)
-	directions := [][2]int{{0, 1}, {1, 0}, {0, -1}, {-1, 0}}
+	directions := [4][2]int{{0, 1}, {1, 0}, {0, -1}, {-1, 0}}
 	curRow, curCol := 9, 9
 	curDir := 0
 	steps := 1
@@ -202,22 +204,24 @@ func (g *Graph) Solve() *Graph {
 		for _, g := range theSet {
 			currentSet, solved := g.stepEach()
 			if solved {
+				pool.PutAll(theSet[1:])
 				return currentSet[0]
 			}
 			newSet = append(newSet, currentSet...)
+			pool.Put(g)
 		}
 
 		if len(newSet) > keepCount {
 			slices.SortFunc(newSet, func(g0, g1 *Graph) int {
 				return int(g0.edgeCount) - int(g1.edgeCount)
 			})
-			theSet = newSet[:keepCount]
-		} else {
-			theSet = newSet
+			pool.PutAll(newSet[keepCount:])
+			newSet = newSet[:keepCount]
 		}
+		theSet = newSet
 	}
 
-	return theSet[0]
+	return nil
 }
 
 func (g *Graph) stepEach() ([]*Graph, bool) {
@@ -228,9 +232,10 @@ func (g *Graph) stepEach() ([]*Graph, bool) {
 			continue
 		}
 
-		ng := g.Copy()
+		ng := g.copy(true)
 		if ng.Flood(i) {
 			if ng.edgeCount == 0 {
+				pool.PutAll(nextSet)
 				return []*Graph{ng}, true
 			}
 			nextSet = append(nextSet, ng)
@@ -241,12 +246,24 @@ func (g *Graph) stepEach() ([]*Graph, bool) {
 }
 
 func (g *Graph) Copy() *Graph {
-	ng := &Graph{
-		solution:  make([]uint8, len(g.solution), len(g.solution)+1),
-		edgeCount: g.edgeCount,
-	}
+	return g.copy(false)
+}
 
-	copy(ng.solution, g.solution)
+func (g *Graph) copy(pooled bool) (ng *Graph) {
+	if pooled {
+		ng = pool.Get()
+		if cap(ng.solution) < len(g.solution)+1 {
+			ng.solution = make([]uint8, 0, len(g.solution)+1)
+		} else {
+			ng.solution = ng.solution[:0]
+		}
+	} else {
+		ng = &Graph{
+			solution: make([]uint8, 0, 32),
+		}
+	}
+	ng.edgeCount = g.edgeCount
+	ng.solution = append(ng.solution, g.solution...)
 
 	i := uint16(0)
 	var idMap [361]uint16

@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	keepCount = 1000
+	keepCount = 250
 )
 
 type Graph struct {

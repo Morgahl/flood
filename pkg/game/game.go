@@ -17,7 +17,11 @@ import (
 	// graph "github.com/Morgahl/flood/pkg/graph/v3"
 	// graph "github.com/Morgahl/flood/pkg/graph/v4"
 	// graph "github.com/Morgahl/flood/pkg/graph/v5"
-	graph "github.com/Morgahl/flood/pkg/graph/v6"
+	// graph "github.com/Morgahl/flood/pkg/graph/v6"
+	// graph "github.com/Morgahl/flood/pkg/graph/v7"
+	// graph "github.com/Morgahl/flood/pkg/graph/v8"
+	// graph "github.com/Morgahl/flood/pkg/graph/v9"
+	graph "github.com/Morgahl/flood/pkg/graph/v10"
 )
 
 type Game struct {

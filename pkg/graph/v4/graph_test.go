@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/Morgahl/flood/internal/fixtures"
-	"github.com/Morgahl/flood/pkg/graph"
+	"github.com/Morgahl/flood/pkg/graph/v4"
 )
 
 func BenchmarkNew_ones(b *testing.B) { benchmarkNew(b, fixtures.Ones) }
@@ -67,10 +67,6 @@ func BenchmarkRunCopyTwice_fifth(b *testing.B) {
 	benchmarkRunCopyTwice(b, fixtures.Fifth)
 }
 
-// func BenchmarkRunSolution_ones(b *testing.B) {
-// 	benchmarkRunSolution(b, fixtures.Ones, fixtures.OnesSolution)
-// }
-
 func BenchmarkRunSolution_test(b *testing.B) {
 	benchmarkRunSolution(b, fixtures.Test, fixtures.TestSolution)
 }
@@ -88,31 +84,28 @@ func BenchmarkRunSolution_fifth(b *testing.B) {
 }
 
 func benchmarkNew(b *testing.B, base [19][19]uint8) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		graph.New(base)
 	}
 }
 
 func benchmarkNormalize(b *testing.B, base [19][19]uint8) {
 	g := graph.New(base)
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		b.StopTimer()
-		ng := g.Copy()
-		b.StartTimer()
+	var ng *graph.Graph
+	for b.Loop() {
+		ng = g.Copy()
 		ng.Normalize()
 	}
+	ng.Normalize()
 }
 
 func benchmarkRunCopy(b *testing.B, base [19][19]uint8) {
 	g := graph.New(base)
 	g.Normalize()
 	var ng *graph.Graph
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		ng = g.Copy()
 	}
-	b.StopTimer()
 	ng.Normalize()
 }
 
@@ -121,22 +114,17 @@ func benchmarkRunCopyTwice(b *testing.B, base [19][19]uint8) {
 	g.Normalize()
 	g = g.Copy()
 	var ng *graph.Graph
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		ng = g.Copy()
 	}
-	b.StopTimer()
 	ng.Normalize()
 }
 
 func benchmarkRunSolution(b *testing.B, base [19][19]uint8, solution []uint8) {
 	g := graph.New(base)
 	g.Normalize()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		b.StopTimer()
+	for b.Loop() {
 		ng := g.Copy()
-		b.StartTimer()
 		for _, v := range solution {
 			ng.Flood(v)
 		}

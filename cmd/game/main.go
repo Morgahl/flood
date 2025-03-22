@@ -11,8 +11,9 @@ func main() {
 	// game, err := game.New("./internal/fixtures/ones")
 	// game, err := game.New("./internal/fixtures/test")
 	// game, err := game.New("./internal/fixtures/test_layered")
-	// game, err := game.New("./internal/fixtures/first")
-	game, err := game.New("./internal/fixtures/fifth")
+	// game, err := game.New("./internal/fixtures/1")
+	// game, err := game.New("./internal/fixtures/5")
+	game, err := game.New("./internal/fixtures/857")
 	if err != nil {
 		log.Fatalln(err)
 	}
