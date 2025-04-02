@@ -1,7 +1,7 @@
 package board
 
 import (
-	"fmt"
+	"strconv"
 )
 
 type direction int
@@ -78,5 +78,5 @@ func (c *cell) flood(f, t uint8) (count int) {
 }
 
 func (c *cell) String() string {
-	return fmt.Sprintf("%d", c.v)
+	return strconv.Itoa(int(c.v))
 }
